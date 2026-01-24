@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Cafe Ordering System</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="admin-header">
+    <h1>☕ Cafe Admin Dashboard</h1>
+    <nav>
+      <a href="logout.php" class="logout-btn">Logout</a>
+    </nav>
+  </header>
+
+  <!-- Main Container -->
+  <div class="dashboard-container">
+
+    <!-- Menu Management Section -->
+    <section class="dashboard-section">
+      <h2>🍴 Manage Menu Items</h2>
+
+      <!-- Add New Item Form -->
+      <form action="admin_dashboard.php" method="POST" class="menu-form">
+        <input type="hidden" name="action" value="add">
+        <label>Name:</label>
+        <input type="text" name="name" required>
+        
+        <label>Category:</label>
+        <select name="category" required>
+          <option value="veg">Veg</option>
+          <option value="nonveg">Non-Veg</option>
+          <option value="drinks">Drinks</option>
+          <option value="desserts">Desserts</option>
+        </select>
+        
+        <label>Price:</label>
+        <input type="number" name="price" step="0.01" required>
+        
+        <label>Description:</label>
+        <textarea name="description"></textarea>
+        
+        <button type="submit">➕ Add Item</button>
+      </form>
+
+      <!-- Menu Items Table -->
+      <table class="menu-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Description</th>
+            <th>Available</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php
+          require_once "includes/db_connect.php";
+          $menu_sql = "SELECT * FROM menu_items";
+          $menu_result = $conn->query($menu_sql);
+          while($row = $menu_result->fetch_assoc()):
+          ?>
+            <tr>
+              <td><?= $row['id'] ?></td>
+              <td><?= $row['name'] ?></td>
+              <td><?= $row['category'] ?></td>
+              <td><?= $row['price'] ?></td>
+              <td><?= $row['description'] ?></td>
+              <td><?= $row['available'] ? 'Yes' : 'No' ?></td>
+              <td>
+                <!-- Delete button -->
+                <form action="admin_dashboard.php" method="POST" style="display:inline;">
+                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                  <button type="submit">Delete</button>
+                </form>
+              </td>
+            </tr>
+          <?php endwhile; ?>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Orders Management Section -->
+    <section class="dashboard-section">
+      <h2>🛒 Manage Orders</h2>
+
+      <!-- Orders Table -->
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Total Price</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php
+          $order_sql = "SELECT o.id, u.username, o.items, o.total_price, o.status, o.created_at
+                        FROM orders o
+                        JOIN users u ON o.customer_id = u.id";
+          $order_result = $conn->query($order_sql);
+          while($order = $order_result->fetch_assoc()):
+          ?>
+            <tr>
+              <td><?= $order['id'] ?></td>
+              <td><?= $order['username'] ?></td>
+              <td><?= $order['items'] ?></td>
+              <td><?= $order['total_price'] ?></td>
+              <td><?= $order['status'] ?></td>
+              <td><?= $order['created_at'] ?></td>
+              <td>
+                <!-- Update status -->
+                <form action="admin_dashboard.php" method="POST" style="display:inline;">
+                  <input type="hidden" name="action" value="update_status">
+                  <input type="hidden" name="order_id" value="<?= $order['id'] ?>">
+                  <select name="status">
+                    <option value="pending" <?= $order['status']=='pending'?'selected':'' ?>>Pending</option>
+                    <option value="preparing" <?= $order['status']=='preparing'?'selected':'' ?>>Preparing</option>
+                    <option value="completed" <?= $order['status']=='completed'?'selected':'' ?>>Completed</option>
+                  </select>
+                  <button type="submit">Update</button>
+                </form>
+              </td>
+            </tr>
+          <?php endwhile; ?>
+        </tbody>
+      </table>
+    </section>
+
+  </div>
+
+</body>
+</html>
