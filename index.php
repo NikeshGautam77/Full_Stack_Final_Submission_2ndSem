@@ -1,10 +1,14 @@
 <?php
 session_start();
-require_once "includes/db_connect.php"; 
+require_once "includes/db_connect.php";
+require_once "includes/captcha.php";
+
 if (!isset($_SESSION["user_id"])) {
-  header("Location: login.html");
+  header("Location: login_secure.php");
   exit;
 }
+
+$csrf_token = generateCsrfToken();
 ?>
 
 <!DOCTYPE html>
@@ -164,6 +168,7 @@ if (!isset($_SESSION["user_id"])) {
     <p id="order-summary-total" style="font-weight:bold;"></p>
     
     <form id="checkout-form" action="checkout.php" method="POST" style="margin-top:15px;" onsubmit="return submitOrder(event)">
+      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token); ?>">
       <input type="hidden" id="cart-json" name="cart_json" value="">
       <div style="display:flex;gap:10px;">
         <button type="submit" style="flex:1;background:#28a745;color:#fff;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;font-weight:bold;">Place Order</button>

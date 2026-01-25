@@ -549,7 +549,6 @@ ul li {
 LOGIN.HTML CSS IS ADDED IN THE SAME FILE
 
 */
-
 /* Login Page Styles */
 .login-container {
   max-width: 400px;
@@ -564,6 +563,7 @@ LOGIN.HTML CSS IS ADDED IN THE SAME FILE
 .login-container h2 {
   text-align: center;
   margin-bottom: 20px;
+  color: rgb(134,40,153); /* Purple heading */
 }
 
 .login-form .form-group {
@@ -574,6 +574,7 @@ LOGIN.HTML CSS IS ADDED IN THE SAME FILE
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
+  color: rgb(134,40,153); /* Purple labels */
 }
 
 .login-form input {
@@ -586,18 +587,29 @@ LOGIN.HTML CSS IS ADDED IN THE SAME FILE
 .login-btn {
   width: 100%;
   padding: 12px;
-  background: #6f8f72;
+  background: rgb(134,40,153); /* Purple button */
   color: #fff;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s ease;
 }
 
 .login-btn:hover {
-  background: #557a5e;
+  background: #6e1f9d; /* Darker purple hover */
 }
 
 .register-link {
   text-align: center;
   margin-top: 15px;
+}
+
+.register-link a {
+  color: rgb(134,40,153); /* Purple link */
+  text-decoration: none;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
 }

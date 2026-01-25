@@ -2,9 +2,10 @@
 // my_orders.php
 session_start();
 require_once "includes/db_connect.php";
+require_once "includes/captcha.php";
 
 if (!isset($_SESSION["user_id"])) {
-  header("Location: login.html");
+  header("Location: login_secure.php");
   exit;
 }
 

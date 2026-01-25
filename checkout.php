@@ -2,15 +2,23 @@
 // checkout.php
 session_start();
 require_once "includes/db_connect.php";
+require_once "includes/captcha.php";
 
 if (!isset($_SESSION["user_id"])) {
-  header("Location: login.html");
+  header("Location: login_secure.php");
   exit;
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  // Verify CSRF token
+  if (!isset($_POST["csrf_token"]) || !verifyCsrfToken($_POST["csrf_token"])) {
+    $_SESSION["flash_error"] = "Security token invalid. Please try again.";
+    header("Location: index.php");
+    exit;
+  }
+
   $customer_id = $_SESSION["user_id"];
-  $cart_json = $_POST["cart_json"] ?? '';
+  $cart_json = sanitizeInput($_POST["cart_json"] ?? '');
 
   if (!$cart_json) {
     $_SESSION["flash_error"] = "Cart is empty.";
@@ -29,6 +37,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   foreach ($items as $it) {
     $qty = (int)($it["qty"] ?? 0);
     $price = (float)($it["price"] ?? 0);
+    
+    // Validate inputs
+    if ($qty < 1 || $price < 0) {
+      $_SESSION["flash_error"] = "Invalid order data.";
+      header("Location: index.php");
+      exit;
+    }
     $total += $qty * $price;
   }
 
@@ -38,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $stmt = $conn->prepare($sql);
 
   if (!$stmt) {
-    $_SESSION["flash_error"] = "Database error: " . $conn->error;
+    $_SESSION["flash_error"] = "Database error. Please try again.";
     header("Location: index.php");
     exit;
   }
@@ -52,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     header("Location: my_orders.php");
     exit;
   } else {
-    $_SESSION["flash_error"] = "Failed to place order: " . $stmt->error;
+    $_SESSION["flash_error"] = "Failed to place order. Please try again.";
     header("Location: index.php");
     exit;
   }
