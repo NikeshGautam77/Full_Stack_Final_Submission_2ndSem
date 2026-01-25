@@ -2,12 +2,72 @@
 <html>
 <head>
   <title>Register</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, rgb(134,40,153), #ACB6E5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .register-container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      width: 350px;
+      text-align: center;
+    }
+    .register-container h2 {
+      margin-bottom: 20px;
+      color: rgb(134,40,153);
+    }
+    .register-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .register-container button {
+      width: 100%;
+      padding: 12px;
+      background: rgb(134,40,153);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .register-container button:hover {
+      background: #6e1f9d; /* darker purple hover */
+    }
+    .register-container p {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+    .register-container a {
+      color: rgb(134,40,153);
+      text-decoration: none;
+    }
+    .register-container a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-  <form method="POST" action="register.php">
-    <input type="text" name="username" placeholder="Username" required>
-    <input type="password" name="password" placeholder="Password" required>
-    <button type="submit">Register</button>
-  </form>
+  <div class="register-container">
+    <h2>Create Account</h2>
+    <form method="POST" action="register.php">
+      <input type="text" name="username" placeholder="Username" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <button type="submit">Register</button>
+    </form>
+    <p>Already have an account? <a href="login.html">Login here</a></p>
+  </div>
 </body>
 </html>

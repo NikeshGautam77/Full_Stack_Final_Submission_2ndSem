@@ -1,14 +1,38 @@
 <?php
 session_start();
 require_once "includes/db_connect.php";
+require_once "includes/captcha.php";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $username = trim($_POST["username"]);
+    // Verify CSRF token
+    if (!isset($_POST["csrf_token"]) || !verifyCsrfToken($_POST["csrf_token"])) {
+        $_SESSION["flash_error"] = "Security token invalid. Please try again.";
+        header("Location: register_secure.php");
+        exit;
+    }
+
+    // Verify CAPTCHA
+    if (!isset($_POST["captcha_answer"]) || !verifyCaptcha($_POST["captcha_answer"])) {
+        $_SESSION["flash_error"] = "Incorrect answer to security question.";
+        header("Location: register_secure.php");
+        exit;
+    }
+
+    // Sanitize and validate input
+    $username = sanitizeInput($_POST["username"]);
     $password = trim($_POST["password"]);
 
-    if ($username === "" || $password === "") {
-        $_SESSION["flash_error"] = "Username and password required.";
-        header("Location: register.html");
+    // Validate username format (3-20 chars, alphanumeric and underscore)
+    if (!validateUsername($username)) {
+        $_SESSION["flash_error"] = "Username must be 3-20 characters (letters, numbers, underscore only).";
+        header("Location: register_secure.php");
+        exit;
+    }
+
+    // Validate password strength
+    if (!validatePassword($password)) {
+        $_SESSION["flash_error"] = "Password must be at least 6 characters.";
+        header("Location: register_secure.php");
         exit;
     }
 
@@ -18,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $check->execute();
     if ($check->get_result()->num_rows > 0) {
         $_SESSION["flash_error"] = "Username already exists.";
-        header("Location: register.html");
+        header("Location: register_secure.php");
         exit;
     }
 
@@ -31,13 +55,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if ($stmt->execute()) {
         $_SESSION["flash_success"] = "Registration successful. Please log in.";
-        header("Location: login.html");
+        header("Location: login_secure.php");
     } else {
-        $_SESSION["flash_error"] = "Registration failed.";
-        header("Location: register.html");
+        $_SESSION["flash_error"] = "Registration failed. Please try again.";
+        header("Location: register_secure.php");
     }
     exit;
 }
-header("Location: register.html");
+header("Location: register_secure.php");
 exit;
 ?>
