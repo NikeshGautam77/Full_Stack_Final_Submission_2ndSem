@@ -4,30 +4,31 @@ require_once "includes/db_connect.php";
 require_once "includes/captcha.php";
 
 if (!isset($_SESSION["user_id"])) {
-  header("Location: login_secure.php");
-  exit;
+    header("Location: login_secure.php");
+    exit;
 }
 
+// Generate CSRF token for checkout form
 $csrf_token = generateCsrfToken();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="CSS/style.css">
   <script src="script.js"></script>
   <title>Cafe Menu</title>
 </head>
 <body>
+
 <?php if (!empty($_SESSION["flash_success"])): ?>
-  <div class="flash success"><?= $_SESSION["flash_success"]; ?></div>
+  <div class="flash success"><?= htmlspecialchars($_SESSION["flash_success"]); ?></div>
   <?php unset($_SESSION["flash_success"]); ?>
 <?php endif; ?>
 
 <?php if (!empty($_SESSION["flash_error"])): ?>
-  <div class="flash error"><?= $_SESSION["flash_error"]; ?></div>
+  <div class="flash error"><?= htmlspecialchars($_SESSION["flash_error"]); ?></div>
   <?php unset($_SESSION["flash_error"]); ?>
 <?php endif; ?>
 
@@ -44,7 +45,7 @@ $csrf_token = generateCsrfToken();
 
   <!-- Search Bar -->
   <div class="search-container">
-    <input type="text" id="searchInput" placeholder="Search menu..." 
+    <input type="text" id="searchInput" placeholder="Search menu..."
            onkeypress="if(event.key==='Enter') searchMenu()" />
     <button onclick="searchMenu()">Search</button>
   </div>
@@ -60,7 +61,7 @@ $csrf_token = generateCsrfToken();
   </div>
 
   <!-- Category Tabs -->
-  <div class="tab" id="veg-tab" onclick="showVegItems()">Veg Items</div>  
+  <div class="tab" id="veg-tab" onclick="showVegItems()">Veg Items</div>
   <div class="tab" id="nonveg-tab" onclick="showNonVegItems()">Non-Veg Items</div>
   <div class="tab" id="drinks-tab" onclick="showDrinks()">Drinks Items</div>
   <div class="tab" id="dessert-tab" onclick="showDessert()">Desserts</div>
@@ -69,6 +70,7 @@ $csrf_token = generateCsrfToken();
   <button class="cart-icon-btn" onclick="openCartModal()">
     🛒 Cart <span id="cart-count" class="cart-count">0</span>
   </button>
+  <button onclick="goToMyOrders()" class="orders-btn">📦 My Orders</button>
 </div>
 
 <!-- Main Content Area -->
@@ -80,7 +82,7 @@ $csrf_token = generateCsrfToken();
     <div class="menu-grid">
       <?php
       $veg_items = $conn->query("SELECT * FROM menu_items WHERE category='veg' AND available=1");
-      while($item = $veg_items->fetch_assoc()):
+      while ($item = $veg_items->fetch_assoc()):
       ?>
         <div class="menu-card">
           <h4><?= htmlspecialchars($item['name']) ?></h4>
@@ -97,7 +99,7 @@ $csrf_token = generateCsrfToken();
     <div class="menu-grid">
       <?php
       $nonveg_items = $conn->query("SELECT * FROM menu_items WHERE category='nonveg' AND available=1");
-      while($item = $nonveg_items->fetch_assoc()):
+      while ($item = $nonveg_items->fetch_assoc()):
       ?>
         <div class="menu-card">
           <h4><?= htmlspecialchars($item['name']) ?></h4>
@@ -114,7 +116,7 @@ $csrf_token = generateCsrfToken();
     <div class="menu-grid">
       <?php
       $drink_items = $conn->query("SELECT * FROM menu_items WHERE category='drinks' AND available=1");
-      while($item = $drink_items->fetch_assoc()):
+      while ($item = $drink_items->fetch_assoc()):
       ?>
         <div class="menu-card">
           <h4><?= htmlspecialchars($item['name']) ?></h4>
@@ -131,7 +133,7 @@ $csrf_token = generateCsrfToken();
     <div class="menu-grid">
       <?php
       $dessert_items = $conn->query("SELECT * FROM menu_items WHERE category='desserts' AND available=1");
-      while($item = $dessert_items->fetch_assoc()):
+      while ($item = $dessert_items->fetch_assoc()):
       ?>
         <div class="menu-card">
           <h4><?= htmlspecialchars($item['name']) ?></h4>
@@ -166,10 +168,9 @@ $csrf_token = generateCsrfToken();
     <h2 style="margin-bottom:15px;">Order Summary</h2>
     <ul id="order-summary-list" style="list-style:none;padding:0;margin-bottom:15px;"></ul>
     <p id="order-summary-total" style="font-weight:bold;"></p>
-    
-    <form id="checkout-form" action="checkout.php" method="POST" style="margin-top:15px;" onsubmit="return submitOrder(event)">
-      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token); ?>">
+    <form id="checkout-form" action="checkout.php" method="POST" onsubmit="return submitOrder(event)">
       <input type="hidden" id="cart-json" name="cart_json" value="">
+      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token); ?>">
       <div style="display:flex;gap:10px;">
         <button type="submit" style="flex:1;background:#28a745;color:#fff;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;font-weight:bold;">Place Order</button>
         <button type="button" onclick="closeOrderModal()" style="flex:1;background:#6c757d;color:#fff;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;">Cancel</button>

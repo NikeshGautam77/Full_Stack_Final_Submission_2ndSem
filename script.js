@@ -226,3 +226,8 @@ function submitOrder(event) {
   const form = document.getElementById('checkout-form');
   if (form) form.submit();
 }
+
+// FOR ORDERS BUTTON
+function goToMyOrders() {
+  window.location.href = "my_orders.php";
+}

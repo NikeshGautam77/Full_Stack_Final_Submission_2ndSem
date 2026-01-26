@@ -88,7 +88,7 @@ $csrf_token = generateCsrfToken();
 <head>
   <meta charset="UTF-8">
   <title>Admin Dashboard - Cafe Ordering System</title>
-  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="CSS/admin.css">
 </head>
 <body>
   <!-- Header -->
@@ -104,7 +104,7 @@ $csrf_token = generateCsrfToken();
   <?php if (!empty($_SESSION["flash_error"])): ?>
     <div class="flash error" style="margin: 20px; padding: 12px; background-color: #f8d7da; color: #721c24; border-radius: 4px;"><?= htmlspecialchars($_SESSION["flash_error"]); ?></div>
     <?php unset($_SESSION["flash_error"]); ?>
-  <?php endif; %>
+  <?php endif; ?>
 
   <div class="dashboard-container">
 

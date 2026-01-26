@@ -4,14 +4,16 @@ session_start();
 require_once "includes/db_connect.php";
 require_once "includes/captcha.php";
 
-if (!isset($_SESSION["user_id"])) {
-  header("Location: login_secure.php");
-  exit;
+// ✅ Only logged-in customers can view their orders
+if (empty($_SESSION["user_id"])) {
+    header("Location: login_secure.php");
+    exit;
 }
 
-$user_id = $_SESSION["user_id"];
+$user_id   = (int)$_SESSION["user_id"];
+$username  = htmlspecialchars($_SESSION["username"]); // for display
 
-// ✅ Only fetch orders belonging to the logged-in user
+// ✅ Fetch only orders belonging to the logged-in user
 $sql = "SELECT id, items, total_price, status, created_at 
         FROM orders 
         WHERE customer_id = ? 
@@ -26,11 +28,11 @@ $result = $stmt->get_result();
 <head>
   <meta charset="UTF-8">
   <title>My Orders</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="CSS/style.css">
 </head>
 <body>
   <header class="site-header">
-    <h1>My Orders</h1>
+    <h1>Orders for <?= $username ?></h1>
     <nav>
       <a href="index.php">Back to Menu</a>
       <a href="logout.php" class="logout-btn">Logout</a>
@@ -38,11 +40,11 @@ $result = $stmt->get_result();
   </header>
 
   <?php if (!empty($_SESSION["flash_success"])): ?>
-    <div class="flash success"><?= $_SESSION["flash_success"]; ?></div>
+    <div class="flash success"><?= htmlspecialchars($_SESSION["flash_success"]); ?></div>
     <?php unset($_SESSION["flash_success"]); ?>
   <?php endif; ?>
   <?php if (!empty($_SESSION["flash_error"])): ?>
-    <div class="flash error"><?= $_SESSION["flash_error"]; ?></div>
+    <div class="flash error"><?= htmlspecialchars($_SESSION["flash_error"]); ?></div>
     <?php unset($_SESSION["flash_error"]); ?>
   <?php endif; ?>
 
@@ -62,7 +64,6 @@ $result = $stmt->get_result();
           <td><?= $row["id"]; ?></td>
           <td>
             <?php
-              // Decode JSON items safely
               $items = json_decode($row["items"], true);
               if (is_array($items)) {
                 foreach ($items as $it) {

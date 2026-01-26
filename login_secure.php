@@ -1,77 +1,123 @@
 <?php
 session_start();
-require_once "includes/db_connect.php";
 require_once "includes/captcha.php";
 
-$captcha_question = generateCaptcha();
+// Generate CSRF + CAPTCHA safely
 $csrf_token = generateCsrfToken();
+$captcha_question = generateCaptcha();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cafe System Login</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    .captcha-question {
-      background-color: #f0f0f0;
-      padding: 10px;
-      border-radius: 5px;
-      margin: 5px 0;
-      font-size: 18px;
-    }
-    .flash.error {
-      background-color: #f8d7da;
-      color: #721c24;
-      padding: 12px;
-      border-radius: 4px;
-      margin-bottom: 20px;
-      border: 1px solid #f5c6cb;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Cafe System Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, rgb(134,40,153), #ACB6E5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+.login-container {
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    width: 350px;
+    text-align: center;
+}
+.login-container h2 {
+    margin-bottom: 20px;
+    color: rgb(134,40,153);
+}
+.login-container input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+.login-container button {
+    width: 100%;
+    padding: 12px;
+    background: rgb(134,40,153);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.login-container button:hover {
+    background: #6e1f9d;
+}
+.flash-error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+.captcha-question {
+    background: #f0f0f0;
+    padding: 8px;
+    border-radius: 5px;
+    margin: 6px 0;
+    font-weight: bold;
+}
+</style>
 </head>
+
 <body>
 
-  <!-- Login Container -->
-  <div class="login-container">
+<div class="login-container">
     <h2>Login to Cafe Ordering System</h2>
 
-    <!-- Flash Messages -->
     <?php if (!empty($_SESSION["flash_error"])): ?>
-      <div class="flash error"><?= htmlspecialchars($_SESSION["flash_error"]); ?></div>
-      <?php unset($_SESSION["flash_error"]); ?>
+        <div class="flash-error">
+            <?= htmlspecialchars($_SESSION["flash_error"]); ?>
+        </div>
+        <?php unset($_SESSION["flash_error"]); ?>
     <?php endif; ?>
 
-    <!-- Login Form -->
-    <form action="login.php" method="POST" class="login-form">
-      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token); ?>">
-      
-      <div class="form-group">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required placeholder="Enter your username" maxlength="20">
-      </div>
+    <form action="login.php" method="POST">
 
-      <div class="form-group">
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required placeholder="Enter your password" maxlength="255">
-      </div>
+        <input type="hidden" name="csrf_token"
+               value="<?= htmlspecialchars($csrf_token); ?>">
 
-      <!-- CAPTCHA -->
-      <div class="form-group">
-        <label for="captcha">Security Question:</label>
-        <p class="captcha-question"><strong><?= htmlspecialchars($captcha_question); ?></strong></p>
-        <input type="text" id="captcha" name="captcha_answer" required placeholder="Enter your answer" maxlength="10">
-      </div>
+        <input type="text"
+               name="username"
+               placeholder="Username"
+               required
+               maxlength="20">
 
-      <button type="submit" class="login-btn">Login</button>
+        <input type="password"
+               name="password"
+               placeholder="Password"
+               required>
+
+        <label>Security Question:</label>
+        <div class="captcha-question">
+            <?= htmlspecialchars($captcha_question); ?>
+        </div>
+
+        <input type="text"
+               name="captcha_answer"
+               placeholder="Your Answer"
+               required
+               maxlength="10">
+
+        <button type="submit">Login</button>
     </form>
 
-    <!-- Optional Register Link -->
-    <p class="register-link">
-      Don't have an account? <a href="register_secure.php">Register here</a>
+    <p style="margin-top:15px;">
+        Don't have an account?
+        <a href="register_secure.php">Register</a>
     </p>
-  </div>
+</div>
 
 </body>
 </html>
