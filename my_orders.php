@@ -67,7 +67,7 @@ $result = $stmt->get_result();
               $items = json_decode($row["items"], true);
               if (is_array($items)) {
                 foreach ($items as $it) {
-                  echo htmlspecialchars($it["name"]) . " × " . (int)$it["qty"] . "<br>";
+                  echo htmlspecialchars($it["name"]) . " x " . (int)$it["qty"] . "<br>";
                 }
               }
             ?>
