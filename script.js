@@ -2,7 +2,7 @@
 
 // Highlight active tab
 function highlightTab(tabId, colorClass) {
-  const allTabs = ['veg-tab', 'nonveg-tab', 'drinks-tab', 'dessert-tab']; // ✅ unified spelling
+  const allTabs = ['veg-tab', 'nonveg-tab', 'drinks-tab', 'dessert-tab'];
   allTabs.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('active-tab', 'green', 'red', 'blue', 'purple');
@@ -26,16 +26,16 @@ function showNonVegItems() {
   highlightTab('nonveg-tab', 'green');
 }
 
-function showDrinks() { // ✅ renamed to match HTML call
+function showDrinks() {
   hideAllTabs();
   const el = document.getElementById('drinkcontents');
   if (el) el.classList.add('active');
   highlightTab('drinks-tab', 'blue');
 }
 
-function showDessert() { // ✅ renamed to match HTML call
+function showDessert() {
   hideAllTabs();
-  const el = document.getElementById('dessertcontents'); // ✅ unified spelling
+  const el = document.getElementById('dessertcontents');
   if (el) el.classList.add('active');
   highlightTab('dessert-tab', 'purple');
 }
@@ -53,37 +53,6 @@ window.onload = function () {
   showVegItems();
 };
 
-// ---------------- SEARCH ----------------
-let searchHighlightTimeout;
-function searchMenu() {
-  const query = document.getElementById("searchInput").value.toLowerCase();
-  const allSections = document.querySelectorAll(".tab-content");
-
-  // Clear previous timeout to avoid flicker
-  if (searchHighlightTimeout) clearTimeout(searchHighlightTimeout);
-
-  allSections.forEach(section => {
-    const cards = section.querySelectorAll(".menu-card");
-    cards.forEach(card => {
-      const title = card.querySelector("h4").textContent.toLowerCase();
-      if (title.includes(query)) {
-        card.style.display = "block";
-        card.classList.add("highlight");
-      } else {
-        card.style.display = "none";
-        card.classList.remove("highlight");
-      }
-    });
-  });
-
-  // Remove highlight after 5s
-  searchHighlightTimeout = setTimeout(() => {
-    document.querySelectorAll(".menu-card.highlight").forEach(card => {
-      card.classList.remove("highlight");
-    });
-  }, 5000);
-}
-
 // ---------------- FILTER ----------------
 function filterMenu() {
   const filterValue = document.getElementById('filter').value;
@@ -94,7 +63,7 @@ function filterMenu() {
   const menuGrid = activeSection.querySelector('.menu-grid');
 
   menuCards.sort((a, b) => {
-    const priceA = parseFloat(a.querySelector('p').textContent.replace('Rs. ', '')); // ✅ parseFloat
+    const priceA = parseFloat(a.querySelector('p').textContent.replace('Rs. ', ''));
     const priceB = parseFloat(b.querySelector('p').textContent.replace('Rs. ', ''));
     switch(filterValue) {
       case 'price-asc': return priceA - priceB;
@@ -201,7 +170,7 @@ function finalOrder() {
 
   summaryTotal.textContent = `Total: Rs. ${total}`;
   const jsonStr = JSON.stringify(cartData);
-  const hidden = document.getElementById('cart-json'); // ✅ must exist in HTML
+  const hidden = document.getElementById('cart-json');
   if (hidden) hidden.value = jsonStr;
 
   document.getElementById('order-modal').style.display = 'flex';
@@ -219,10 +188,9 @@ function submitOrder(event) {
     qty: item.quantity
   }));
   const jsonStr = JSON.stringify(cartData);
-  const hidden = document.getElementById('cart-json'); // ✅ matches PHP name="cart_json"
+  const hidden = document.getElementById('cart-json');
   if (hidden) hidden.value = jsonStr;
 
-  // Submit to checkout.php (POST)
   const form = document.getElementById('checkout-form');
   if (form) form.submit();
 }
@@ -231,3 +199,51 @@ function submitOrder(event) {
 function goToMyOrders() {
   window.location.href = "my_orders.php";
 }
+
+// ---------------- AJAX SEARCH ----------------
+function ajaxSearch() {
+  const name = document.getElementById("searchName").value;
+  const category = document.getElementById("searchCategory").value;
+  const minPrice = document.getElementById("searchMinPrice").value;
+  const maxPrice = document.getElementById("searchMaxPrice").value;
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "search.php", true);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      document.getElementById("searchResults").innerHTML = xhr.responseText;
+    } else {
+      document.getElementById("searchResults").innerHTML = "<p>Error loading results.</p>";
+    }
+  };
+
+  xhr.send(
+    "name=" + encodeURIComponent(name) +
+    "&category=" + encodeURIComponent(category) +
+    "&minPrice=" + encodeURIComponent(minPrice) +
+    "&maxPrice=" + encodeURIComponent(maxPrice)
+  );
+}
+
+// Trigger Ajax search when pressing Enter in any search field
+document.addEventListener("DOMContentLoaded", function() {
+  const inputs = [
+    document.getElementById("searchName"),
+    document.getElementById("searchCategory"),
+    document.getElementById("searchMinPrice"),
+    document.getElementById("searchMaxPrice")
+  ];
+
+  inputs.forEach(input => {
+    if (input) {
+      input.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          e.preventDefault(); // prevent form submission
+          ajaxSearch();       // call your Ajax search
+        }
+      });
+    }
+  });
+});

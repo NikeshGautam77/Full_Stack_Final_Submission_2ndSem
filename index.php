@@ -45,10 +45,19 @@ $csrf_token = generateCsrfToken();
 
   <!-- Search Bar -->
   <div class="search-container">
-    <input type="text" id="searchInput" placeholder="Search menu..."
-           onkeypress="if(event.key==='Enter') searchMenu()" />
-    <button onclick="searchMenu()">Search</button>
-  </div>
+  <input type="text" id="searchName" placeholder="Search by name">
+  <select id="searchCategory">
+    <option value="">All Categories</option>
+    <option value="veg">Veg</option>
+    <option value="nonveg">Non-Veg</option>
+    <option value="drinks">Drinks</option>
+    <option value="desserts">Desserts</option>
+  </select>
+  <input type="number" id="searchMinPrice" placeholder="Min Price">
+  <input type="number" id="searchMaxPrice" placeholder="Max Price">
+  <button onclick="ajaxSearch()">Search</button>
+</div>
+<div id="searchResults"></div>
 
   <!-- Filter Dropdown -->
   <div class="filter-container">
