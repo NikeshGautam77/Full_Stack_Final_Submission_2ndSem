@@ -318,16 +318,42 @@ document.addEventListener('click', function(e) {
   });
 });
 
+function bindStatusForms() {
+  document.querySelectorAll('.status-form').forEach(form => {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const orderId = this.dataset.orderId;
+      const status  = this.querySelector('select[name="status"]').value;
+      const csrf    = this.querySelector('input[name="csrf_token"]').value;
+      const msgBox  = this.querySelector('.status-msg');
+
+      msgBox.textContent = 'Updating...';
+
+      fetch('ajax_update_order_status.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ order_id: orderId, status: status, csrf_token: csrf })
+      })
+      .then(res => res.json())
+      .then(data => {
+        msgBox.textContent = data.success ? '✅ Updated' : '❌ ' + data.message;
+        msgBox.style.color = data.success ? 'green' : 'red';
+      })
+      .catch(() => {
+        msgBox.textContent = '❌ Error';
+        msgBox.style.color = 'red';
+      });
+    });
+  });
+}
 
 function refreshOrders() {
   fetch('ajax_get_orders.php')
     .then(res => res.json())
     .then(data => {
       if (!data.success) return;
-
       const tbody = document.querySelector('.orders-table tbody');
-      tbody.innerHTML = ''; // clear old rows
-
+      tbody.innerHTML = '';
       data.orders.forEach(order => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -352,11 +378,10 @@ function refreshOrders() {
         `;
         tbody.appendChild(tr);
       });
-    })
-    .catch(err => console.error('Order refresh failed', err));
+      bindStatusForms(); // re‑attach listeners
+    });
 }
 
-// Poll every 5 seconds
 setInterval(refreshOrders, 5000);
 
 </script>
