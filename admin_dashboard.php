@@ -128,17 +128,19 @@ $csrf_token = generateCsrfToken();
               <td><?= htmlspecialchars($order["created_at"]) ?></td>
               <td>
                 <!-- Update Status -->
-                <form action="admin_dashboard.php" method="POST" style="display:inline;">
-                  <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token); ?>">
-                  <input type="hidden" name="action" value="update_status">
-                  <input type="hidden" name="order_id" value="<?= htmlspecialchars($order["id"]); ?>">
-                  <select name="status">
-                    <option value="pending"   <?= htmlspecialchars($order["status"])=="pending"?"selected":"" ?>>Pending</option>
-                    <option value="preparing" <?= htmlspecialchars($order["status"])=="preparing"?"selected":"" ?>>Preparing</option>
-                    <option value="completed" <?= htmlspecialchars($order["status"])=="completed"?"selected":"" ?>>Completed</option>
-                  </select>
-                  <button type="submit" class="update-btn">Update</button>
-                </form>
+                <form class="status-form" data-order-id="<?= htmlspecialchars($order["id"]); ?>">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token); ?>">
+                    
+                    <select name="status">
+                      <option value="pending"   <?= $order["status"]=="pending"?"selected":"" ?>>Pending</option>
+                      <option value="preparing" <?= $order["status"]=="preparing"?"selected":"" ?>>Preparing</option>
+                      <option value="completed" <?= $order["status"]=="completed"?"selected":"" ?>>Completed</option>
+                    </select>
+
+                    <button type="submit" class="update-btn">Update</button>
+                    <span class="status-msg" style="margin-left:8px;"></span>
+                  </form>
+
 
                 
               </td>
@@ -151,20 +153,26 @@ $csrf_token = generateCsrfToken();
     <!-- Menu Management (now below orders) -->
     <section class="dashboard-section">
       <h2>🍴 Manage Menu Items</h2>
-      <form action="admin_dashboard.php" method="POST" class="menu-form">
+      <form id="add-item-form" class="menu-form">
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token); ?>">
-        <input type="hidden" name="action" value="add">
-        <input type="text" name="name" placeholder="Item name" required maxlength="100">
+
+        <input type="text" name="name" placeholder="Item name" required>
+        
         <select name="category" required>
           <option value="veg">Veg</option>
           <option value="nonveg">Non-Veg</option>
           <option value="drinks">Drinks</option>
           <option value="desserts">Desserts</option>
         </select>
-        <input type="number" name="price" step="0.01" placeholder="Price" required min="0">
-        <textarea name="description" placeholder="Description" maxlength="500"></textarea>
+
+        <input type="number" name="price" step="0.01" min="0" placeholder="Price" required>
+        
+        <textarea name="description" placeholder="Description"></textarea>
+
         <button type="submit">➕ Add Item</button>
+        <span id="add-item-msg" style="margin-left:10px;"></span>
       </form>
+
 
       <table class="menu-table">
         <thead>
@@ -181,12 +189,11 @@ $csrf_token = generateCsrfToken();
               <td><?= htmlspecialchars($row["price"]); ?></td>
               <td><?= htmlspecialchars($row["description"]) ?></td>
               <td>
-                <form action="admin_dashboard.php" method="POST" style="display:inline;">
-                  <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token); ?>">
-                  <input type="hidden" name="action" value="delete">
-                  <input type="hidden" name="id" value="<?= htmlspecialchars($row["id"]); ?>">
-                  <button type="submit" class="delete-btn" onclick="return confirm('Delete this item?');">Delete</button>
-                </form>
+                <button class="delete-btn"
+                        data-id="<?= htmlspecialchars($row["id"]); ?>"
+                        data-csrf="<?= htmlspecialchars($csrf_token); ?>">
+                  Delete
+                </button>
               </td>
             </tr>
           <?php endwhile; ?>
@@ -195,5 +202,164 @@ $csrf_token = generateCsrfToken();
     </section>
 
   </div>
+
+  <script>
+document.querySelectorAll('.status-form').forEach(form => {
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const orderId = this.dataset.orderId;
+    const status  = this.querySelector('select[name="status"]').value;
+    const csrf    = this.querySelector('input[name="csrf_token"]').value;
+    const msgBox  = this.querySelector('.status-msg');
+
+    msgBox.textContent = 'Updating...';
+
+    fetch('ajax_update_order_status.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        order_id: orderId,
+        status: status,
+        csrf_token: csrf
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        msgBox.textContent = '✅ Updated';
+        msgBox.style.color = 'green';
+      } else {
+        msgBox.textContent = '❌ ' + data.message;
+        msgBox.style.color = 'red';
+      }
+    })
+    .catch(() => {
+      msgBox.textContent = '❌ Error';
+      msgBox.style.color = 'red';
+    });
+  });
+});
+
+
+
+// ================= ADD ITEM =================
+document.getElementById('add-item-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const form = this;
+  const msg  = document.getElementById('add-item-msg');
+  const tbody = document.querySelector('.menu-table tbody');
+
+  msg.textContent = 'Adding...';
+
+  fetch('ajax_add_menu_item.php', {
+    method: 'POST',
+    body: new FormData(form)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (!data.success) {
+      msg.textContent = '❌ ' + data.message;
+      msg.style.color = 'red';
+      return;
+    }
+
+    msg.textContent = '✅ Added';
+    msg.style.color = 'green';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${data.item.id}</td>
+      <td>${data.item.name}</td>
+      <td>${data.item.category}</td>
+      <td>${data.item.price}</td>
+      <td>${data.item.description}</td>
+      <td>
+        <button class="delete-btn"
+                data-id="${data.item.id}"
+                data-csrf="${form.querySelector('[name=csrf_token]').value}">
+          Delete
+        </button>
+      </td>
+    `;
+
+    tbody.prepend(tr);
+    form.reset();
+  });
+});
+
+// ================= DELETE ITEM =================
+document.addEventListener('click', function(e) {
+  if (!e.target.classList.contains('delete-btn')) return;
+
+  if (!confirm('Delete this item?')) return;
+
+  const btn  = e.target;
+  const id   = btn.dataset.id;
+  const csrf = btn.dataset.csrf;
+  const row  = btn.closest('tr');
+
+  fetch('ajax_delete_menu_item.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      id: id,
+      csrf_token: csrf
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      row.remove();
+    } else {
+      alert('❌ ' + data.message);
+    }
+  });
+});
+
+
+function refreshOrders() {
+  fetch('ajax_get_orders.php')
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) return;
+
+      const tbody = document.querySelector('.orders-table tbody');
+      tbody.innerHTML = ''; // clear old rows
+
+      data.orders.forEach(order => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${order.id}</td>
+          <td>${order.username}</td>
+          <td>${order.items}</td>
+          <td>${order.total_price}</td>
+          <td>${order.status}</td>
+          <td>${order.created_at}</td>
+          <td>
+            <form class="status-form" data-order-id="${order.id}">
+              <input type="hidden" name="csrf_token" value="${data.csrf_token}">
+              <select name="status">
+                <option value="pending" ${order.status=="pending"?"selected":""}>Pending</option>
+                <option value="preparing" ${order.status=="preparing"?"selected":""}>Preparing</option>
+                <option value="completed" ${order.status=="completed"?"selected":""}>Completed</option>
+              </select>
+              <button type="submit" class="update-btn">Update</button>
+              <span class="status-msg"></span>
+            </form>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    })
+    .catch(err => console.error('Order refresh failed', err));
+}
+
+// Poll every 5 seconds
+setInterval(refreshOrders, 5000);
+
+</script>
+
 </body>
 </html>

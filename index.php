@@ -79,7 +79,6 @@ $csrf_token = generateCsrfToken();
   <button class="cart-icon-btn" onclick="openCartModal()">
     🛒 Cart <span id="cart-count" class="cart-count">0</span>
   </button>
-  <button onclick="goToMyOrders()" class="orders-btn">📦 My Orders</button>
 </div>
 
 <!-- Main Content Area -->
@@ -171,20 +170,29 @@ $csrf_token = generateCsrfToken();
   </div>
 </div>
 
+<!-- Orders Section (hidden by default) -->
+<div id="orders-container" style="display:none; padding:20px; background:#f9f9f9; border:1px solid #ddd; margin-top:20px;">
+  <!-- Orders will be injected here by loadMyOrders() -->
+</div>
+
 <!-- Order Summary Modal -->
 <div id="order-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
   <div style="background:#fff;padding:30px 20px 20px 20px;border-radius:10px;max-width:400px;width:90%;margin:auto;position:relative;top:10vh;">
     <h2 style="margin-bottom:15px;">Order Summary</h2>
     <ul id="order-summary-list" style="list-style:none;padding:0;margin-bottom:15px;"></ul>
     <p id="order-summary-total" style="font-weight:bold;"></p>
-    <form id="checkout-form" action="checkout.php" method="POST" onsubmit="return submitOrder(event)">
-      <input type="hidden" id="cart-json" name="cart_json" value="">
-      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token); ?>">
-      <div style="display:flex;gap:10px;">
-        <button type="submit" style="flex:1;background:#28a745;color:#fff;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;font-weight:bold;">Place Order</button>
-        <button type="button" onclick="closeOrderModal()" style="flex:1;background:#6c757d;color:#fff;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;">Cancel</button>
-      </div>
-    </form>
+    <form id="checkout-form" onsubmit="submitOrderAjax(event)">
+  <input type="hidden" id="cart-json" name="cart_json" value="">
+  <input type="hidden" id="csrf_token" name="csrf_token" value="<?= htmlspecialchars($csrf_token); ?>">
+  <div style="display:flex;gap:10px;">
+    <button type="submit" style="flex:1;background:#28a745;color:#fff;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;font-weight:bold;">
+      Place Order
+    </button>
+    <button type="button" onclick="closeOrderModal()" style="flex:1;background:#6c757d;color:#fff;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;">
+      Cancel
+    </button>
+  </div>
+</form>
   </div>
 </div>
 

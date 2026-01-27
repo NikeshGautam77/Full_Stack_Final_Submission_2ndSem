@@ -176,30 +176,57 @@ function finalOrder() {
   document.getElementById('order-modal').style.display = 'flex';
 }
 
-function submitOrder(event) {
+function submitOrderAjax(event) {
   event.preventDefault();
   if (cart.length === 0) {
     alert('Your cart is empty!');
     return false;
   }
+
   const cartData = cart.map(item => ({
     name: item.name,
     price: item.price,
     qty: item.quantity
   }));
   const jsonStr = JSON.stringify(cartData);
-  const hidden = document.getElementById('cart-json');
-  if (hidden) hidden.value = jsonStr;
 
-  const form = document.getElementById('checkout-form');
-  if (form) form.submit();
+  const formData = new FormData();
+  formData.append("cart_json", jsonStr);
+  formData.append("csrf_token", document.getElementById("csrf_token").value);
+
+  fetch("checkout.php", {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+      resetCart();
+      closeOrderModal();
+      loadMyOrders();
+    } else {
+      alert("Error: " + data.message);
+    }
+  });
 }
 
-// FOR ORDERS BUTTON
+
+
+// ---------------- MY ORDERS BUTTON ----------------
 function goToMyOrders() {
-  window.location.href = "my_orders.php";
-}
+  // hide menu sections
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.style.display = 'none';
+  });
 
+  // show orders container
+  const ordersDiv = document.getElementById('orders-container');
+  ordersDiv.style.display = 'block';
+
+  // load orders via AJAX
+  loadMyOrders();
+}
 // ---------------- AJAX SEARCH ----------------
 function ajaxSearch() {
   const name = document.getElementById("searchName").value;
@@ -240,8 +267,8 @@ document.addEventListener("DOMContentLoaded", function() {
     if (input) {
       input.addEventListener("keydown", function(e) {
         if (e.key === "Enter") {
-          e.preventDefault(); // prevent form submission
-          ajaxSearch();       // call your Ajax search
+          e.preventDefault();
+          ajaxSearch();
         }
       });
     }
