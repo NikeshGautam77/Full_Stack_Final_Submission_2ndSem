@@ -376,9 +376,10 @@ function refreshOrders() {
             </form>
           </td>
         `;
+        
         tbody.appendChild(tr);
       });
-      bindStatusForms(); // re‑attach listeners
+      bindStatusForms(); 
     });
 }
 
